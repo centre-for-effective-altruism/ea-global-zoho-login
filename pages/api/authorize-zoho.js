@@ -5,7 +5,6 @@ import url from 'url'
 const LOGIN_URL_BASE = 'https://creator.zoho.com'
 
 const updateZohoContactWithToken = async ({ email, token }) => {
-  console.log(`Updating Zoho contact with email ${email} to have token ${token}`)
   // fake waiting for API call - replace with actual thing
   await new Promise(r => setTimeout(r, 2000))
   const zohoUrl = url.parse(LOGIN_URL_BASE)
