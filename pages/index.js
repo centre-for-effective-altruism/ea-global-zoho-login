@@ -16,14 +16,14 @@ export default function Home({ user }) {
   const [zohoUrl, setZohoUrl] = useState(null)
 
   const getMe = async () => {
-    const res = await fetch('/api/me')
+    const res = await fetch('/api/auth/me')
     if (res.ok) {
       setMe(await res.json())
     }
   }
 
   const getZohoUrl = async (me) => {
-    const res = await fetch('/api/authorize-zoho')
+    const res = await fetch('/api/zoho/update-token')
     if (res.ok) {
       const { zohoUrl } = await res.json()
       setZohoUrl(zohoUrl)
@@ -49,7 +49,7 @@ export default function Home({ user }) {
           <Grid container spacing={1} justify='center'>
           {!me
             ? <>
-                <Grid item xs={12}><Button color='primary' variant='contained' fullWidth href='/api/login'>Login / Sign up <LoginIcon /></Button></Grid>
+                <Grid item xs={12}><Button color='primary' variant='contained' fullWidth href='/api/auth/login'>Login / Sign up <LoginIcon /></Button></Grid>
                 <Grid item xs={12}>
                   <Typography gutterBottom>Log in to your EffectiveAltruism.org account to get started.</Typography>
                   <Typography gutterBottom>
@@ -61,7 +61,7 @@ export default function Home({ user }) {
                 </Grid>
               </>
             : <>
-                <Grid item xs={12} md={6}><Button variant='contained' fullWidth href='/api/logout'>Logout <ExitIcon /></Button></Grid>
+                <Grid item xs={12} md={6}><Button variant='contained' fullWidth href='/api/auth/logout'>Logout <ExitIcon /></Button></Grid>
                 {zohoUrl
                   ? <Grid item xs={12} md={6}><Button color='primary' variant='contained' fullWidth href={zohoUrl}>Get Started <ChevronRightIcon /></Button></Grid>
                   : <CircularProgress />
