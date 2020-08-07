@@ -1,7 +1,7 @@
 import url from 'url'
 
 const { ZOHO_CLIENT_ID, ZOHO_REDIRECT_URL } = process.env
-const ZOHO_OAUTH_URL_BASE = 'https://accounts.zoho.com/oauth/v2/auth?&&redirect_uri=http%3A%2F%2Flocalhost%3A7071%2Fapi%2FOAuth2CallBack%2F'
+const ZOHO_OAUTH_URL_BASE = 'https://accounts.zoho.com/oauth/v2/auth'
 
 
 const getZohoURL = () => {
