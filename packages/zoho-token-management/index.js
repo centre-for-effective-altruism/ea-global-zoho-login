@@ -3,9 +3,11 @@ const fs = require('mz/fs')
 var path = require('path')
 const TOKEN_STORE = path.join(__dirname, 'zcrm_oauthtokens.json')
 
-const saveOAuthTokens = tokenobject => updateOAuthTokens(tokenobject)
+const localFile = {}
+const db = {}
+localFile.saveOAuthTokens = tokenobject => updateOAuthTokens(tokenobject)
 
-const getOAuthTokens = async user_identifier => {
+localFile.getOAuthTokens = async user_identifier => {
   try {
     const filedata = await fs.readFile(TOKEN_STORE).then(buf => buf.toString())
     const tokens = JSON.parse(filedata)
@@ -21,7 +23,7 @@ const getOAuthTokens = async user_identifier => {
   }
 }
 
-updateOAuthTokens = async tokenobject => {
+localFile.updateOAuthTokens = async tokenobject => {
   let tokens
   try {
     // check if we have any existing tokens in the store
@@ -50,8 +52,32 @@ updateOAuthTokens = async tokenobject => {
   await fs.writeFile(TOKEN_STORE, JSON.stringify(tokens, null, 2))
 }
 
+
+const initOptions = {/* initialization options */};
+const pgp = require('pg-promise')(initOptions);
+const {ParameterizedQuery: PQ} = require('pg-promise');
+const { DB_URL } = process.env
+const pg = pgp(DB_URL);
+db.saveOAuthTokens = tokenobject => db.updateOAuthTokens(tokenobject)
+
+db.getOAuthTokens = async user_identifier => {
+  const findToken = new PQ({text: 'select * from auth where user_identifier = $1', values: [user_identifier]})
+  const token = await pg.one(findToken)
+  return token
+}
+
+db.updateOAuthTokens = async tokenobject => {
+  const userIdentifier = ZCRMRestClient.getUserIdentifier()
+  const {access_token, refresh_token, expires_in } = tokenobject
+  const updateToken = new PQ({text: `
+    insert into auth(access_token, refresh_token, expires_in, user_identifier) 
+    values ($1, $2, $3, $4) 
+    on conflict (user_identifier) 
+      do update set (access_token, expires_in) = (EXCLUDED.access_token, EXCLUDED.expires_in)`, 
+  values: [access_token, refresh_token, expires_in, userIdentifier]})
+  await pg.none(updateToken)
+}
+
 module.exports = {
-  saveOAuthTokens,
-  getOAuthTokens,
-  updateOAuthTokens
+  ...db
 }

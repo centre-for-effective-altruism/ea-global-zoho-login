@@ -6,10 +6,14 @@ import Link from '@material-ui/core/Link'
 import Page from 'components/Page'
 import Divider from '@material-ui/core/Divider'
 import CircularProgress from '@material-ui/core/CircularProgress'
-
+/*
 import LoginIcon from '@material-ui/icons/Lock'
 import ExitIcon from '@material-ui/icons/ExitToApp'
 import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+*/
+const LoginIcon = () => null
+const ExitIcon = () => null
+const ChevronRightIcon = () => null
 
 export default function Home({ user }) {
   const [me, setMe] = useState(null)
@@ -44,6 +48,8 @@ export default function Home({ user }) {
       <Grid container spacing={6} justify='center'>
         {me && <Grid item md={6}>
           <Typography gutterBottom>Hey {me.given_name || me.email} ({me.given_name && me.email})!</Typography>
+        
+          {me && !me.email_verified && <Typography>You need to verify your email! <Link href={window.location.href}>I've done this.</Link></Typography>}
         </Grid>}
         <Grid item md={6}>
           <Grid container spacing={1} justify='center'>
@@ -62,13 +68,12 @@ export default function Home({ user }) {
               </>
             : <>
                 <Grid item xs={12} md={6}><Button variant='contained' fullWidth href='/api/auth/logout'>Logout <ExitIcon /></Button></Grid>
-                {zohoUrl
+                {zohoUrl  
                   ? <Grid item xs={12} md={6}><Button color='primary' variant='contained' fullWidth href={zohoUrl}>Get Started <ChevronRightIcon /></Button></Grid>
-                  : <CircularProgress />
+                  : me.email_verified && <CircularProgress />
                 }
               </>
           }
-          {me && !me.email_verified && <Typography>You need to verify your email!</Typography>}
           </Grid>
         </Grid>
       </Grid>

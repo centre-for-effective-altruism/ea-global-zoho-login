@@ -4,12 +4,6 @@ import Typography from '@material-ui/core/Typography'
 import Button from '@material-ui/core/Button'
 import Link from '@material-ui/core/Link'
 import Page from 'components/Page'
-import Divider from '@material-ui/core/Divider'
-import CircularProgress from '@material-ui/core/CircularProgress'
-
-import LoginIcon from '@material-ui/icons/Lock'
-import ExitIcon from '@material-ui/icons/ExitToApp'
-import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 
 export default function AuthorizeZoho () {
   return (
