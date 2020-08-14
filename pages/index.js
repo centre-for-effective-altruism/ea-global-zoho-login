@@ -6,6 +6,7 @@ import Link from '@material-ui/core/Link'
 import Page from 'components/Page'
 import Divider from '@material-ui/core/Divider'
 import CircularProgress from '@material-ui/core/CircularProgress'
+import { makeStyles } from '@material-ui/styles'
 /*
 import LoginIcon from '@material-ui/icons/Lock'
 import ExitIcon from '@material-ui/icons/ExitToApp'
@@ -14,6 +15,12 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 const LoginIcon = () => null
 const ExitIcon = () => null
 const ChevronRightIcon = () => null
+
+const useStyles = makeStyles(theme => ({
+  welcomeText: {
+    marginBottom: theme.spacing(6)
+  }
+}))
 
 export default function Home({ user }) {
   const [me, setMe] = useState(null)
@@ -42,16 +49,21 @@ export default function Home({ user }) {
     if (me && me.email_verified) getZohoUrl()
   }, [me])
 
+  const classes = useStyles()
+
   return (
     <Page pageTitle='Welcome'>
       <Typography align='center' variant='h2' component='h1' gutterBottom>Apply to attend EA Global</Typography>
       <Grid container spacing={6} justify='center'>
-        {me && <Grid item md={6}>
-          <Typography gutterBottom>Hey {me.given_name || me.email} ({me.given_name && me.email})!</Typography>
-        
-          {me && !me.email_verified && <Typography>You need to verify your email! <Link href={window.location.href}>I've done this.</Link></Typography>}
-        </Grid>}
         <Grid item md={6}>
+          {me && <div className={classes.welcomeText}>
+            <Typography gutterBottom>Hey {me.given_name || me.email}{me.given_name && ` (${me.email})`}!</Typography>
+
+            {me && !me.email_verified
+              ? <Typography>You need to verify your email! <Link href={window.location.href}>I've done this.</Link></Typography>
+              : <Typography>If you're ready to start your application, click 'Get Started'.</Typography>
+            }
+          </div>}
           <Grid container spacing={1} justify='center'>
           {!me
             ? <>
@@ -68,7 +80,7 @@ export default function Home({ user }) {
               </>
             : <>
                 <Grid item xs={12} md={6}><Button variant='contained' fullWidth href='/api/auth/logout'>Logout <ExitIcon /></Button></Grid>
-                {zohoUrl  
+                {zohoUrl
                   ? <Grid item xs={12} md={6}><Button color='primary' variant='contained' fullWidth href={zohoUrl}>Get Started <ChevronRightIcon /></Button></Grid>
                   : me.email_verified && <CircularProgress />
                 }
@@ -77,11 +89,6 @@ export default function Home({ user }) {
           </Grid>
         </Grid>
       </Grid>
-      {zohoUrl && <>
-        <Divider variant='middle' />
-        <Typography>Your Zoho URL is:</Typography>
-        <Typography><code>{zohoUrl}</code></Typography>
-      </>}
     </Page>
   )
 }

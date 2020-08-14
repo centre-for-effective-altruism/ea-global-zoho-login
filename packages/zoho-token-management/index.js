@@ -56,8 +56,19 @@ localFile.updateOAuthTokens = async tokenobject => {
 const initOptions = {/* initialization options */};
 const pgp = require('pg-promise')(initOptions);
 const {ParameterizedQuery: PQ} = require('pg-promise');
-const { DB_URL } = process.env
-const pg = pgp(DB_URL);
+const { DB_HOST, DB_PORT, DB_DATABASE, DB_USER, DB_PASSWORD } = process.env
+const connection = {
+  host: DB_HOST,
+  port: DB_PORT || 5432,
+  database: DB_DATABASE,
+  user: DB_USER,
+  password: DB_PASSWORD,
+  ssl: {
+    rejectUnauthorized: false,
+    ca: fs.readFileSync(path.join(__dirname, 'db', 'rds-ca-2019-root.pem')).toString()
+  }
+}
+const pg = pgp(connection);
 db.saveOAuthTokens = tokenobject => db.updateOAuthTokens(tokenobject)
 
 db.getOAuthTokens = async user_identifier => {
@@ -70,10 +81,10 @@ db.updateOAuthTokens = async tokenobject => {
   const userIdentifier = ZCRMRestClient.getUserIdentifier()
   const {access_token, refresh_token, expires_in } = tokenobject
   const updateToken = new PQ({text: `
-    insert into auth(access_token, refresh_token, expires_in, user_identifier) 
-    values ($1, $2, $3, $4) 
-    on conflict (user_identifier) 
-      do update set (access_token, expires_in) = (EXCLUDED.access_token, EXCLUDED.expires_in)`, 
+    insert into auth(access_token, refresh_token, expires_in, user_identifier)
+    values ($1, $2, $3, $4)
+    on conflict (user_identifier)
+      do update set (access_token, expires_in) = (EXCLUDED.access_token, EXCLUDED.expires_in)`,
   values: [access_token, refresh_token, expires_in, userIdentifier]})
   await pg.none(updateToken)
 }

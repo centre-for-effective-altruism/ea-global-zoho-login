@@ -55,6 +55,20 @@ const zohoRes = res => {
 
 const zohoResSingle = res => zohoRes(res)[0]
 
+const doUpdateZohoContactWithToken = async ({ id, token }) => {
+  const client = await getClient()
+  return client.API.MODULES.put({
+    module: 'Contacts',
+    id,
+    body: {
+      data: [{
+        Auth_Token_UUID: token
+      }],
+      trigger: []
+    }
+  }).then(zohoResSingle)
+}
+
 const createZohoContactWithToken = async ({ email, token }) => {
   console.log(`Creating Zoho contact with email ${email}`)
   const client = await getClient()
@@ -63,15 +77,22 @@ const createZohoContactWithToken = async ({ email, token }) => {
     body: {
       data: [{
         Email: email,
-        Last_Name: 'Unknown Last Name',
+        Last_Name: '-',
         Auth_Token_UUID: token
       }],
       trigger: [] // TODO: unsure if this is correct behaviour, check with Kashif
     }
   }).then(zohoResSingle)
-  console.log(updateReq)
-  if (updateReq.status !== 'success') throw new Error(updateReq.message)
-  return true
+  if (updateReq.status === 'success') return true
+  // if we got here, there's been an error
+  // one error case is a duplicate, which we can easily handle...
+  if (updateReq.code === 'DUPLICATE_DATA') {
+    console.log(`Found a duplicate, updating instead...`)
+    const { id } = updateReq.details
+    await doUpdateZohoContactWithToken({ id, token })
+    return true
+  }
+  throw new Error(updateReq.message)
 }
 
 const updateZohoContactWithToken = async ({ email, token }) => {
@@ -86,16 +107,7 @@ const updateZohoContactWithToken = async ({ email, token }) => {
   // fallback to creating the contact
   // update the contact record with token
   console.log(`Updating contact ${Contact.Email} with token ${token}`)
-  const updateReq = await client.API.MODULES.put({
-    module: 'Contacts',
-    id: Contact.id,
-    body: {
-      data: [{
-        Auth_Token_UUID: token
-      }],
-      trigger: []
-    }
-  }).then(zohoResSingle)
+  const updateReq = await doUpdateZohoContactWithToken({ id: Contact.id, token })
   if (updateReq.status !== 'success') throw new Error(updateReq.message)
   return true
 }
