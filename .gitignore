@@ -30,3 +30,5 @@ yarn-error.log*
 .env.production.local
 
 zcrm_oauthtokens.*
+
+.vercel
