@@ -1017,6 +1017,11 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
+"@centreea/zoho-postgres-token-management@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@centreea/zoho-postgres-token-management/-/zoho-postgres-token-management-1.0.0.tgz#ba72ccbb439d915caeca52529147cb3b28a9f169"
+  integrity sha512-dz7lg+PJsi5nEU3+TZ7gUl5+5LTMeQZZI2cQq6DCnZYUzaSd36wp1nQs0u9ahELRFOny37dJYyCqTVStcnKbyw==
+
 "@emotion/hash@^0.8.0":
   version "0.8.0"
   resolved "https://registry.yarnpkg.com/@emotion/hash/-/hash-0.8.0.tgz#bbbff68978fefdbe68ccb533bc8cbe1d1afb5413"
@@ -6626,7 +6631,3 @@ zcrmsdk@^0.0.20:
     properties-reader "0.0.16"
     querystring "^0.2.0"
     request "^2.88.2"
-
-"zoho-postgres-token-management@https://github.com/centre-for-effective-altruism/zoho-postgres-token-management":
-  version "1.0.0"
-  resolved "https://github.com/centre-for-effective-altruism/zoho-postgres-token-management#61721307dc0352d0abd2898a931c81d4953a2b12"
