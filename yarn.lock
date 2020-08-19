@@ -1017,9 +1017,9 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@cea/zoho-token-management@https://github.com/centre-for-effective-altruism/zoho-postgres-token-management.git":
+"@cea/zoho-token-management@https://github.com/centre-for-effective-altruism/zoho-postgres-token-management":
   version "1.0.0"
-  resolved "https://github.com/centre-for-effective-altruism/zoho-postgres-token-management.git#038d26509192113319f1001980468d7b24a22c13"
+  resolved "https://github.com/centre-for-effective-altruism/zoho-postgres-token-management#038d26509192113319f1001980468d7b24a22c13"
 
 "@emotion/hash@^0.8.0":
   version "0.8.0"
