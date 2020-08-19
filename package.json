@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^0.15.0",
-    "@cea/zoho-token-management": "https://github.com/centre-for-effective-altruism/zoho-postgres-token-management",
     "@material-ui/core": "^4.11.0",
     "@material-ui/styles": "^4.10.0",
     "mz": "^2.7.0",
@@ -17,7 +16,8 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "uuid-random": "^1.3.2",
-    "zcrmsdk": "^0.0.20"
+    "zcrmsdk": "^0.0.20",
+    "zoho-postgres-token-management": "https://github.com/centre-for-effective-altruism/zoho-postgres-token-management"
   },
   "devDependencies": {}
 }
