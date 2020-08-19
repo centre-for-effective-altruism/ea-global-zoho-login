@@ -57,6 +57,7 @@ const zohoResSingle = res => zohoRes(res)[0]
 
 const doUpdateZohoContactWithToken = async ({ id, token }) => {
   const client = await getClient()
+  console.log(`Updating contact ${id} with token ${token.replace(/\w{4}-\w{4}-\w{4}-\w{4}-\w{8}/,'...')}`)
   return client.API.MODULES.put({
     module: 'Contacts',
     id,
@@ -103,10 +104,9 @@ const updateZohoContactWithToken = async ({ email, token }) => {
     module: 'Contacts',
     params: { email }
   }).then(zohoResSingle)
-  if (!Contact) return createZohoContactWithToken({ email, token })
   // fallback to creating the contact
+  if (!Contact) return createZohoContactWithToken({ email, token })
   // update the contact record with token
-  console.log(`Updating contact ${Contact.Email} with token ${token}`)
   const updateReq = await doUpdateZohoContactWithToken({ id: Contact.id, token })
   if (updateReq.status !== 'success') throw new Error(updateReq.message)
   return true
