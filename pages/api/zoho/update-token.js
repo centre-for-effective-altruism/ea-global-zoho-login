@@ -4,7 +4,7 @@ import uuid from 'uuid-random'
 import url from 'url'
 import { create } from 'domain'
 
-const LOGIN_URL_BASE = 'https://creator.zoho.com?creator_id=abc123'
+const { ZOHO_CREATOR_LOGIN_URL_BASE } = process.env
 
 const zohoRes = res => {
   // if the body is empty, it probably means there was no record returned
@@ -113,7 +113,7 @@ const updateZohoContactWithToken = async ({ email, token }) => {
 }
 
 const getZohoURL = ({ email, token }) => {
-  const urlBase = url.parse(LOGIN_URL_BASE, true)
+  const urlBase = url.parse(ZOHO_CREATOR_LOGIN_URL_BASE, true)
   delete urlBase.search
   urlBase.query = {
     ...urlBase.query,
