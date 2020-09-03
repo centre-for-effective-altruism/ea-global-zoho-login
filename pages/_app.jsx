@@ -1,4 +1,5 @@
 // import App from 'next/app'
+import { useEffect } from 'react'
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import HeadTags from 'components/HeadTags'
@@ -48,6 +49,15 @@ const theme = createMuiTheme({
 })
 
 function MyApp({ Component, pageProps }) {
+
+  useEffect(() => {
+    // Remove the server-side injected CSS.
+    const jssStyles = document.querySelector('#jss-server-side');
+    if (jssStyles?.parentElement) {
+      jssStyles.parentElement.removeChild(jssStyles)
+    }
+  }, [])
+
   return <>
     <HeadTags />
     <ThemeProvider theme={theme}>
