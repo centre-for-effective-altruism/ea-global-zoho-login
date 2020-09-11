@@ -3,8 +3,9 @@ import { getClient } from 'lib/zoho'
 import uuid from 'uuid-random'
 import url from 'url'
 import { create } from 'domain'
-
-const { ZOHO_CREATOR_LOGIN_URL_BASE } = process.env
+import Cookie from 'universal-cookie'
+import { USE_APPLICATION_COOKIE_NAME,  } from 'lib/cookie'
+const { ZOHO_CREATOR_REGISTRATION_URL_BASE, ZOHO_CREATOR_APPLICATION_URL_BASE } = process.env
 
 const zohoRes = res => {
   // if the body is empty, it probably means there was no record returned
@@ -112,8 +113,8 @@ const updateZohoContactWithToken = async ({ email, token }) => {
   return true
 }
 
-const getZohoURL = ({ email, token }) => {
-  const urlBase = url.parse(ZOHO_CREATOR_LOGIN_URL_BASE, true)
+const getZohoRegistrationURL = ({ email, token }) => {
+  const urlBase = url.parse(ZOHO_CREATOR_REGISTRATION_URL_BASE, true)
   delete urlBase.search
   urlBase.query = {
     ...urlBase.query,
@@ -123,9 +124,23 @@ const getZohoURL = ({ email, token }) => {
   return url.format(urlBase)
 }
 
+const getZohoApplicationURL = ({ email, token, query }) => {
+  const urlBase = url.parse(ZOHO_CREATOR_APPLICATION_URL_BASE, true)
+  delete urlBase.search
+  urlBase.query = {
+    ...urlBase.query,
+    email,
+    token,
+    ...query
+  }
+  return url.format(urlBase)
+}
+
 export default auth0.requireAuthentication(async function authorizeZoho (req, res) {
   try {
     const { user } = await auth0.getSession(req)
+    const cookie = new Cookie(req.headers.cookie)
+    const useApplicationCookie = cookie.get(USE_APPLICATION_COOKIE_NAME)
     const { email, email_verified } = user
     if (!email_verified) throw new Error('User email is not verified!')
     const token = uuid()
@@ -136,7 +151,11 @@ export default auth0.requireAuthentication(async function authorizeZoho (req, re
       if (err.status_code === 204) await createZohoContactWithToken({ email, token })
       throw err
     }
-    const zohoUrl = getZohoURL({ email, token })
+    // If the user has the `use registration` cookie set, direct them to the application form,
+    // otherwise send them to the registration form
+    const zohoUrl = useApplicationCookie
+      ? getZohoApplicationURL({ email, token, query: { [USE_APPLICATION_COOKIE_NAME]: useApplicationCookie }})
+      : getZohoRegistrationURL({ email, token })
     res.json({ email, token, zohoUrl })
   } catch (err) {
     console.error(err)

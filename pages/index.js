@@ -7,6 +7,9 @@ import Page from 'components/Page'
 import Alert from '@material-ui/lab/Alert'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import { makeStyles } from '@material-ui/styles'
+import Cookie from 'universal-cookie'
+import { useRouter } from 'next/router'
+import { USE_APPLICATION_COOKIE_NAME, cookieOpts } from 'lib/cookie'
 /*
 import LoginIcon from '@material-ui/icons/Lock'
 import ExitIcon from '@material-ui/icons/ExitToApp'
@@ -15,6 +18,8 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight'
 const LoginIcon = () => null
 const ExitIcon = () => null
 const ChevronRightIcon = () => null
+
+const cookie = new Cookie()
 
 const useStylesSpacer = makeStyles(theme => ({
   root: {
@@ -103,6 +108,7 @@ export default function Home({ user }) {
   const [me, setMe] = useState(null)
   const [zohoUrl, setZohoUrl] = useState(null)
   const [verificationResendStatus, setVerificationResendStatus] = useState({ message: null, state: null})
+  const { query, push, pathname } = useRouter()
 
   const getMe = async () => {
     const res = await fetch('/api/auth/me')
@@ -134,6 +140,13 @@ export default function Home({ user }) {
     }
   }
 
+  const setRedirectCookie = () => {
+    if (query[USE_APPLICATION_COOKIE_NAME]) {
+      cookie.set(USE_APPLICATION_COOKIE_NAME, query[USE_APPLICATION_COOKIE_NAME], cookieOpts)
+      push(pathname)
+    }
+  }
+
   useEffect(() => {
     getMe()
   }, [])
@@ -141,6 +154,10 @@ export default function Home({ user }) {
   useEffect(() => {
     if (me && me.email_verified) getZohoUrl()
   }, [me])
+
+  useEffect(() => {
+    setRedirectCookie()
+  }, [query])
 
   const classes = useStyles()
 
