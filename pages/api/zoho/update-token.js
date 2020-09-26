@@ -1,11 +1,6 @@
 import auth0 from 'lib/auth0'
 import { getClient } from 'lib/zoho'
 import uuid from 'uuid-random'
-import url from 'url'
-import { create } from 'domain'
-import Cookie from 'universal-cookie'
-import { USE_APPLICATION_COOKIE_NAME,  } from 'lib/cookie'
-const { ZOHO_CREATOR_REGISTRATION_URL_BASE, ZOHO_CREATOR_APPLICATION_URL_BASE } = process.env
 
 const zohoRes = res => {
   // if the body is empty, it probably means there was no record returned
@@ -113,38 +108,12 @@ const updateZohoContactWithToken = async ({ email, token }) => {
   return true
 }
 
-const getZohoRegistrationURL = ({ email, token }) => {
-  const urlBase = url.parse(ZOHO_CREATOR_REGISTRATION_URL_BASE, true)
-  delete urlBase.search
-  urlBase.query = {
-    ...urlBase.query,
-    email,
-    token
-  }
-  return url.format(urlBase)
-}
-
-const getZohoApplicationURL = ({ email, token, query }) => {
-  const urlBase = url.parse(ZOHO_CREATOR_APPLICATION_URL_BASE, true)
-  delete urlBase.search
-  urlBase.query = {
-    ...urlBase.query,
-    email,
-    token,
-    ...query
-  }
-  return url.format(urlBase)
-}
-
 export default auth0.requireAuthentication(async function authorizeZoho (req, res) {
   try {
     const { user } = await auth0.getSession(req)
-    const cookie = new Cookie(req.headers.cookie)
-    const useApplicationCookie = cookie.get(USE_APPLICATION_COOKIE_NAME)
     const { email, email_verified } = user
     if (!email_verified) throw new Error('User email is not verified!')
     const token = uuid()
-    let Contact
     try {
       await updateZohoContactWithToken({ email, token })
     } catch (err) {
@@ -153,10 +122,7 @@ export default auth0.requireAuthentication(async function authorizeZoho (req, re
     }
     // If the user has the `use registration` cookie set, direct them to the application form,
     // otherwise send them to the registration form
-    const zohoUrl = useApplicationCookie
-      ? getZohoApplicationURL({ email, token, query: { [USE_APPLICATION_COOKIE_NAME]: useApplicationCookie }})
-      : getZohoRegistrationURL({ email, token })
-    res.json({ email, token, zohoUrl })
+    res.json({ email, token })
   } catch (err) {
     console.error(err)
     res.status(500).send(err.message)

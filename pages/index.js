@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { useState, useEffect } from 'react'
 import Grid from '@material-ui/core/Grid'
 import Typography from '@material-ui/core/Typography'
@@ -9,7 +10,9 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 import { makeStyles } from '@material-ui/styles'
 import Cookie from 'universal-cookie'
 import { useRouter } from 'next/router'
-import { USE_APPLICATION_COOKIE_NAME, cookieOpts } from 'lib/cookie'
+import { RETURN_DATA_COOKIE_NAME, cookieOpts } from 'lib/cookie'
+import { getEventApplicationForms } from 'lib/contentful'
+import url from 'url'
 /*
 import LoginIcon from '@material-ui/icons/Lock'
 import ExitIcon from '@material-ui/icons/ExitToApp'
@@ -77,11 +80,9 @@ const LoggedInState = ({ me, classes, resendVerificationEmail, verificationResen
       </Alert>}
     </>
     : <>
-      {!zohoUrl
-        ? <>
+      {!zohoUrl && <>
           <Alert severity='info'>Hang on a second, we're just getting the system ready... <CircularProgress size='1rem' /></Alert>
         </>
-        : <Typography>If you're ready to start your application, click 'Get Started'.</Typography>
       }
       <Spacer />
       <Grid container spacing={2} justify='center'>
@@ -103,12 +104,13 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-export default function Home({ user }) {
+export default function Home({ user, applicationForms }) {
   const [loginChecked, setLoginChecked] = useState(false)
   const [me, setMe] = useState(null)
-  const [zohoUrl, setZohoUrl] = useState(null)
+  const [authParams, setAuthParams] = useState(null)
   const [verificationResendStatus, setVerificationResendStatus] = useState({ message: null, state: null})
-  const { query, push, pathname } = useRouter()
+  const [returnReference, setReturnReference] = useState(null)
+  const { query } = useRouter()
 
   const getMe = async () => {
     const res = await fetch('/api/auth/me')
@@ -118,11 +120,11 @@ export default function Home({ user }) {
     setLoginChecked(true)
   }
 
-  const getZohoUrl = async (me) => {
+  const getAuthParams = async (me) => {
     const res = await fetch('/api/zoho/update-token')
     if (res.ok) {
-      const { zohoUrl } = await res.json()
-      setZohoUrl(zohoUrl)
+      const { email, token } = await res.json()
+      setAuthParams({ email, token })
     }
   }
 
@@ -140,42 +142,128 @@ export default function Home({ user }) {
     }
   }
 
-  const setRedirectCookie = () => {
-    if (query[USE_APPLICATION_COOKIE_NAME]) {
-      cookie.set(USE_APPLICATION_COOKIE_NAME, query[USE_APPLICATION_COOKIE_NAME], cookieOpts)
-      push(pathname)
+  const validateReturnURL = () => {
+    const { return_reference, ...rest } = query
+    if (return_reference && getApplicationForm(return_reference)) {
+      cookie.set(RETURN_DATA_COOKIE_NAME, { return_reference, query: { ...rest } }, cookieOpts)
+      setReturnReference(return_reference)
     }
   }
 
+  const getReturnURLDataFromCookie = () => {
+    return cookie.get(RETURN_DATA_COOKIE_NAME, cookieOpts)
+
+  }
+
+  const getApplicationForm = reference => {
+    const applicationForm = applicationForms.filter(form => form.fields.reference === reference)[0]
+    return applicationForm?.fields
+  }
+
+  const getEventData = (reference) => {
+    const applicationForm = getApplicationForm(reference)
+    return applicationForm?.event.fields
+  }
+
+  const buildReturnURL = () => {
+    if (!authParams) return
+    const applicationForm = getApplicationForm(returnReference)
+    const cookieData = getReturnURLDataFromCookie()
+    const parsedUrl = url.parse(applicationForm.returnUrl)
+    delete parsedUrl.search
+    parsedUrl.query = {
+      ...parsedUrl.query,
+      ...authParams,
+      ...cookieData.query
+    }
+    const returnUrl = url.format(parsedUrl)
+    return returnUrl
+  }
+
   useEffect(() => {
+    validateReturnURL()
+  }, [query])
+
+  useEffect(() => {
+    // set previously-stored return URL from cookie data
+    const cookieData = getReturnURLDataFromCookie()
+    if (cookieData?.return_reference) setReturnReference(cookieData.return_reference)
+    // get user data via API
     getMe()
   }, [])
 
   useEffect(() => {
-    if (me && me.email_verified) getZohoUrl()
+    if (me && me.email_verified) getAuthParams()
   }, [me])
 
-  useEffect(() => {
-    setRedirectCookie()
-  }, [query])
-
   const classes = useStyles()
+  const ApplicationForm = getApplicationForm(returnReference)
+  const Event = getEventData(returnReference)
+  const zohoUrl = buildReturnURL()
 
   return (
-    <Page pageTitle='Welcome'>
+    <Page pageTitle="Welcome">
       <div className={classes.wrapper}>
-        <Grid container justify='center'>
+        <Grid container justify="center">
           <Grid item sm={8} md={6}>
-            <Typography align='center' variant='h2' component='h1' gutterBottom>Apply to attend the EA Student Summit</Typography>
-            {loginChecked
-              ? me
-                ? <LoggedInState {...{ me, resendVerificationEmail, verificationResendStatus, classes, zohoUrl }} />
-                : <LoggedOutState />
-              : <LoadingState />
-            }
+            {returnReference ? (
+              <>
+                <Head>
+                  <title>
+                    {Event.title} |{' '}
+                    {ApplicationForm.formAction}
+                  </title>
+                </Head>
+                <Typography
+                  align="center"
+                  variant="h2"
+                  component="h1"
+                  gutterBottom
+                >
+                  {Event.title}
+                </Typography>
+                <Typography align="center" variant="h4" gutterBottom>
+                  {ApplicationForm.formAction}
+                </Typography>
+                {loginChecked ? (
+                  me ? (
+                    <LoggedInState
+                      {...{
+                        me,
+                        resendVerificationEmail,
+                        verificationResendStatus,
+                        classes,
+                        zohoUrl,
+                      }}
+                    />
+                  ) : (
+                    <LoggedOutState />
+                  )
+                ) : (
+                  <LoadingState />
+                )}
+              </>
+            ) : (
+              <Alert severity="warning">
+                Oops! It looks like you got to this page without following a
+                valid link. If you're trying to register for an event, please
+                check for an email from the CEA Events team, and follow the link
+                to the registration/application form.
+              </Alert>
+            )}
           </Grid>
         </Grid>
       </div>
     </Page>
   )
+}
+
+export async function getStaticProps () {
+  const applicationForms = await getEventApplicationForms()
+  return {
+    props: {
+      applicationForms
+    },
+    revalidate: 5 * 60 // every five mins
+  }
 }
