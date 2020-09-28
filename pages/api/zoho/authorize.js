@@ -1,8 +1,8 @@
 import url from 'url'
+import { getBaseURL } from 'lib/utils'
 
-const { ZOHO_CLIENT_ID, ZOHO_REDIRECT_URL } = process.env
+const { ZOHO_CLIENT_ID } = process.env
 const ZOHO_OAUTH_URL_BASE = 'https://accounts.zoho.com/oauth/v2/auth'
-
 
 const getZohoURL = () => {
   const zohoUrl = url.parse(ZOHO_OAUTH_URL_BASE, true)
@@ -14,7 +14,7 @@ const getZohoURL = () => {
     response_type: 'code',
     access_type: 'offline',
     prompt: 'consent',
-    redirect_uri: ZOHO_REDIRECT_URL
+    redirect_uri: getBaseURL()
   }
   return url.format(zohoUrl)
 }
