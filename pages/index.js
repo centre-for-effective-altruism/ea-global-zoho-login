@@ -264,6 +264,6 @@ export async function getStaticProps () {
     props: {
       applicationForms
     },
-    revalidate: 5 * 60 // every five mins
+    revalidate: 30
   }
 }
