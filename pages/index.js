@@ -169,7 +169,7 @@ export default function Home({ user, applicationForms }) {
     if (!authParams) return
     const applicationForm = getApplicationForm(returnReference)
     const cookieData = getReturnURLDataFromCookie()
-    const parsedUrl = url.parse(applicationForm.returnUrl)
+    const parsedUrl = url.parse(applicationForm.returnUrl, true)
     delete parsedUrl.search
     parsedUrl.query = {
       ...parsedUrl.query,
