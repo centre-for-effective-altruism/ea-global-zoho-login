@@ -7,7 +7,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@auth0/nextjs-auth0": "^0.15.0",
+    "@auth0/nextjs-auth0": "^1.4.2",
     "@centreea/zoho-postgres-token-management": "^1.0.0",
     "@material-ui/core": "^4.11.0",
     "@material-ui/lab": "^4.0.0-alpha.56",
